@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/auth_text_field.dart';
+import '../providers/auth_providers.dart';
 import 'forgot_password_page.dart';
 import 'signup_page.dart';
 
@@ -19,7 +20,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
-  final LocalAuthentication _localAuth = LocalAuthentication();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -153,7 +154,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: _handleLogin,
+                            onPressed: _isLoading ? null : _handleLogin,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF00C4FF),
                               shape: RoundedRectangleBorder(
@@ -161,15 +162,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                               elevation: 0,
                             ),
-                            child: const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                                color: Colors.white,
-                              ),
-                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    ),
+                                  )
+                                : const Text(
+                                    'Sign In',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                           ),
                         ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
                         
@@ -276,80 +286,125 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  void _handleLogin() async {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Credentials collected. Please authenticate with Face ID/Biometrics.'),
-          backgroundColor: AppTheme.primaryBlue,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
-      
-      // Trigger biometric authentication
-      await _authenticateWithBiometrics();
-    }
-  }
-  
-  Future<void> _authenticateWithBiometrics() async {
-    try {
-      final bool canAuthenticateWithBiometrics = await _localAuth.canCheckBiometrics;
-      final bool canAuthenticate = canAuthenticateWithBiometrics || await _localAuth.isDeviceSupported();
-      
-      if (!canAuthenticate) {
+      setState(() => _isLoading = true);
+
+      try {
+        // Login with backend
+        await ref.read(authStateProvider.notifier).login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+
         if (mounted) {
+          // Check if biometric auth should be enabled after successful login
+          await _promptBiometricSetup();
+          
+          // Navigate to home page
+          // TODO: Replace with your home route
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Biometric authentication not available on this device'),
-              backgroundColor: Colors.orange,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-        return;
-      }
-      
-      final bool didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to complete sign in',
-        options: const AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: false,
-        ),
-      );
-      
-      if (mounted) {
-        if (didAuthenticate) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Authentication successful! Logging in...'),
+              content: const Text('Login successful!'),
               backgroundColor: Colors.green,
               behavior: SnackBarBehavior.floating,
             ),
           );
-          // TODO: Complete login flow with collected credentials
-        } else {
+        }
+      } catch (e) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Authentication failed. Please try again.'),
+              content: Text('Login failed: ${e.toString()}'),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
             ),
           );
         }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
+  Future<void> _promptBiometricSetup() async {
+    final localAuth = LocalAuthentication();
+    final canCheckBiometrics = await localAuth.canCheckBiometrics;
+    final isDeviceSupported = await localAuth.isDeviceSupported();
+
+    if (canCheckBiometrics && isDeviceSupported) {
+      if (mounted) {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Enable Biometric Login?'),
+            content: const Text(
+              'Would you like to enable biometric authentication for faster login next time?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Not Now'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Enable'),
+              ),
+            ],
+          ),
+        );
+
+        if (result == true) {
+          try {
+            await ref.read(authStateProvider.notifier).enableBiometricAuth();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Biometric authentication enabled'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            // Silently fail if biometric setup fails
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> _loginWithBiometrics() async {
+    setState(() => _isLoading = true);
+
+    try {
+      await ref.read(authStateProvider.notifier).loginWithBiometrics();
+
+      if (mounted) {
+        // Navigate to home page
+        // TODO: Replace with your home route
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Biometric login successful!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Authentication error: $e'),
+            content: Text('Biometric login failed: ${e.toString()}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
