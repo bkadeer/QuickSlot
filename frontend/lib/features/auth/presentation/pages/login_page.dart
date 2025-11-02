@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/video_background.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../widgets/auth_text_field.dart';
 import '../providers/auth_providers.dart';
@@ -35,18 +36,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
-              Color(0xFF0f3460),
-            ],
-          ),
-        ),
+      body: VideoBackground(
+        videoPath: 'assets/videos/background.mp4',
+        overlayOpacity: 0.6,
         child: SafeArea(
           child: SingleChildScrollView(
             child: ConstrainedBox(
@@ -70,25 +62,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 16),
                   
                   // Service indicator
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00FFF0).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFF00FFF0).withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      'Discover • Book • Enjoy',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF40FFB0),
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
+                  // Container(
+                  //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  //   decoration: BoxDecoration(
+                  //     color: const Color(0xFF00FFF0).withOpacity(0.1),
+                  //     borderRadius: BorderRadius.circular(20),
+                  //     border: Border.all(
+                  //       color: const Color(0xFF00FFF0).withOpacity(0.3),
+                  //       width: 1,
+                  //     ),
+                  //   ),
+                  //   child: Text(
+                  //     'Discover • Book • Enjoy',
+                  //     style: theme.textTheme.bodySmall?.copyWith(
+                  //       color: const Color(0xFF40FFB0),
+                  //       fontWeight: FontWeight.w500,
+                  //       letterSpacing: 1.2,
+                  //     ),
+                  //   ),
+                  // ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
                   
                   const SizedBox(height: 40),
                   
@@ -280,7 +272,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Please sign in to QuickSlot',
+          'Please sign in to QuickSpot',
           style: theme.textTheme.bodyMedium,
         ),
       ],

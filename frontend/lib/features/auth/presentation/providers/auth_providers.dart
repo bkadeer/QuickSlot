@@ -181,6 +181,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> isBiometricEnabled() async {
+    try {
+      return await _repository.isBiometricEnabled();
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> requestPasswordReset(String email) async {
     state = state.copyWith(isLoading: true, error: null);
     
