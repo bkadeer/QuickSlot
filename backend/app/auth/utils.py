@@ -1,18 +1,53 @@
-from passlib.context import CryptContext
+import hashlib
+import secrets
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from typing import Optional
 from ..config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify a password against a hash using PBKDF2"""
+    try:
+        # Hash format: algorithm$iterations$salt$hash
+        parts = hashed_password.split('$')
+        if len(parts) != 4:
+            return False
+        
+        algorithm, iterations, salt, stored_hash = parts
+        iterations = int(iterations)
+        
+        # Hash the plain password with the same salt
+        password_hash = hashlib.pbkdf2_hmac(
+            'sha256',
+            plain_password.encode('utf-8'),
+            salt.encode('utf-8'),
+            iterations
+        )
+        computed_hash = password_hash.hex()
+        
+        # Constant-time comparison
+        return secrets.compare_digest(computed_hash, stored_hash)
+    except Exception:
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    """Hash a password using PBKDF2 with SHA256"""
+    # Generate a random salt
+    salt = secrets.token_hex(32)
+    iterations = 100000
+    
+    # Hash the password
+    password_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt.encode('utf-8'),
+        iterations
+    )
+    
+    # Return in format: algorithm$iterations$salt$hash
+    return f"pbkdf2_sha256${iterations}${salt}${password_hash.hex()}"
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

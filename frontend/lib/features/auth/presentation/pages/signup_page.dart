@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../home/presentation/pages/home_page.dart';
+import '../providers/auth_providers.dart';
 import '../widgets/auth_text_field.dart';
 
 class SignupPage extends ConsumerStatefulWidget {
@@ -19,6 +21,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -226,7 +229,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                         SizedBox(
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: _handleSignup,
+                            onPressed: _isLoading ? null : _handleSignup,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF00C4FF),
                               shape: RoundedRectangleBorder(
@@ -261,7 +264,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
                               child: Text(
-                                'Sign In',
+                                'Back to Sign In',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: const Color(0xFF00FFF0),
                                   fontWeight: FontWeight.w600,
@@ -287,19 +290,37 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     );
   }
 
-  void _handleSignup() {
+  Future<void> _handleSignup() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // TODO: Implement signup logic
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Signup functionality coming soon'),
-          backgroundColor: AppTheme.primaryBlue,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-      );
+      setState(() => _isLoading = true);
+
+      try {
+        await ref.read(authStateProvider.notifier).register(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          name: _nameController.text.trim(),
+        );
+
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Signup failed: ${e.toString()}'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
     }
   }
 }

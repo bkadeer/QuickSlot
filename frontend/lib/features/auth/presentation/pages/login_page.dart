@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../home/presentation/pages/home_page.dart';
 import '../widgets/auth_text_field.dart';
 import '../providers/auth_providers.dart';
 import 'forgot_password_page.dart';
@@ -279,7 +280,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Sign in to continue to QuickSlot',
+          'Please sign in to QuickSlot',
           style: theme.textTheme.bodyMedium,
         ),
       ],
@@ -302,13 +303,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           await _promptBiometricSetup();
           
           // Navigate to home page
-          // TODO: Replace with your home route
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Login successful!'),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-            ),
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const HomePage()),
           );
         }
       } catch (e) {
@@ -383,13 +379,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       if (mounted) {
         // Navigate to home page
-        // TODO: Replace with your home route
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Biometric login successful!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       }
     } catch (e) {

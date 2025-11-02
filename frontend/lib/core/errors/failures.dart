@@ -17,15 +17,15 @@ class ServerFailure extends Failure {
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure([String message = 'No internet connection']) : super(message);
+  const NetworkFailure([super.message = 'No internet connection']);
 }
 
 class CacheFailure extends Failure {
-  const CacheFailure([String message = 'Cache error']) : super(message);
+  const CacheFailure([super.message = 'Cache error']);
 }
 
 class AuthenticationFailure extends Failure {
-  const AuthenticationFailure([String message = 'Authentication failed']) : super(message);
+  const AuthenticationFailure([super.message = 'Authentication failed']);
 }
 
 class ValidationFailure extends Failure {
@@ -35,5 +35,5 @@ class ValidationFailure extends Failure {
 }
 
 class UnexpectedFailure extends Failure {
-  const UnexpectedFailure([String message = 'An unexpected error occurred']) : super(message);
+  const UnexpectedFailure([super.message = 'An unexpected error occurred']);
 }

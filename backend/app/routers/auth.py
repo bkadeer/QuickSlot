@@ -51,7 +51,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token(data={"sub": new_user.id})
     
     return TokenResponse(
-        user=UserResponse.from_orm(new_user),
+        user=UserResponse.model_validate(new_user),
         access_token=access_token,
         refresh_token=refresh_token,
     )
@@ -82,7 +82,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     refresh_token = create_refresh_token(data={"sub": user.id})
     
     return TokenResponse(
-        user=UserResponse.from_orm(user),
+        user=UserResponse.model_validate(user),
         access_token=access_token,
         refresh_token=refresh_token,
     )
