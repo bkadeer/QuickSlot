@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/widgets/video_background.dart';
 import '../widgets/auth_text_field.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
@@ -26,18 +27,9 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
-              Color(0xFF0f3460),
-            ],
-          ),
-        ),
+      body: VideoBackground(
+        videoPath: 'assets/videos/background.mp4',
+        overlayOpacity: 0.6,
         child: SafeArea(
           child: SingleChildScrollView(
             child: ConstrainedBox(
@@ -117,16 +109,35 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     const SizedBox(height: 24),
                     
                     // Send Reset Link Button
-                    SizedBox(
+                    Container(
                       height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00E6CC).withOpacity(0.5),
+                            blurRadius: 20,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: const Color(0xFF00E6CC).withOpacity(0.3),
+                            blurRadius: 40,
+                            spreadRadius: -5,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
                       child: ElevatedButton(
                         onPressed: _handleResetPassword,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00C4FF),
+                          backgroundColor: const Color(0xFF00E6CC),
+                          // foregroundColor: const Color(0xFF00B199),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25),
                           ),
                           elevation: 0,
+                          // shadowColor: Colors.transparent,
                         ),
                         child: const Text(
                           'Send Reset Link',
@@ -186,12 +197,30 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                     const SizedBox(height: 32),
                     
                     // Success Button
-                    SizedBox(
+                    Container(
                       height: 50,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF00E6CC).withOpacity(0.5),
+                            blurRadius: 20,
+                            spreadRadius: 0,
+                            offset: const Offset(0, 4),
+                          ),
+                          BoxShadow(
+                            color: const Color(0xFF00E6CC).withOpacity(0.3),
+                            blurRadius: 40,
+                            spreadRadius: -5,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: const Color(0xFF00E6CC),
+                          foregroundColor: const Color(0xFF00B199),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25),
                           ),

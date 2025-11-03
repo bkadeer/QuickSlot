@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/video_background.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../providers/auth_providers.dart';
 import '../widgets/auth_text_field.dart';
@@ -37,38 +38,26 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
-              Color(0xFF0f3460),
-            ],
-          ),
-        ),
+      body: VideoBackground(
+        videoPath: 'assets/videos/background.mp4',
+        overlayOpacity: 0.6,
         child: SafeArea(
           child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 24.0,
               ),
-              child: IntrinsicHeight(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
-                  child: Column(
-                    children: [
-                      // Spacer to push content to lower portion
-                      const Spacer(flex: 2),
-                      
-                      // Logo
+              child: Column(
+                children: [
+                  const SizedBox(height: 18),
+
+                  // Logo
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 80,
+                    height: 80,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.3),
@@ -92,9 +81,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       ),
                     ),
                   ).animate().scale(duration: 600.ms),
-                  
-                  const SizedBox(height: 20),
-                  
+
+                  const SizedBox(height: 10),
+
                   Text(
                     'Create Account',
                     style: theme.textTheme.headlineMedium?.copyWith(
@@ -103,26 +92,25 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   Text(
-                    'Sign up to get started with QuickSlot',
+                    'Sign up to get started with QuickSpot',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: Colors.white70,
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-                  
-                  const SizedBox(height: 40),
-                  
+
+                  const SizedBox(height: 10),
+
                   // Signup Form
                   Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        
                         // Full Name Field
                         AuthTextField(
                           controller: _nameController,
@@ -136,9 +124,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             return null;
                           },
                         ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
-                        
-                        const SizedBox(height: 16),
-                        
+
+                        const SizedBox(height: 10),
+
                         // Email Field
                         AuthTextField(
                           controller: _emailController,
@@ -156,9 +144,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             return null;
                           },
                         ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
-                        
-                        const SizedBox(height: 16),
-                        
+
+                        const SizedBox(height: 10),
+
                         // Password Field
                         AuthTextField(
                           controller: _passwordController,
@@ -189,9 +177,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             return null;
                           },
                         ).animate().fadeIn(delay: 600.ms, duration: 400.ms),
-                        
-                        const SizedBox(height: 16),
-                        
+
+                        const SizedBox(height: 10),
+
                         // Confirm Password Field
                         AuthTextField(
                           controller: _confirmPasswordController,
@@ -208,7 +196,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _obscureConfirmPassword = !_obscureConfirmPassword;
+                                _obscureConfirmPassword =
+                                    !_obscureConfirmPassword;
                               });
                             },
                           ),
@@ -222,35 +211,70 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                             return null;
                           },
                         ).animate().fadeIn(delay: 700.ms, duration: 400.ms),
-                        
-                        const SizedBox(height: 24),
-                        
+
+                        const SizedBox(height: 17),
+
                         // Sign Up Button
                         SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleSignup,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00C4FF),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25),
+                              height: 50,
+                              width: double.infinity,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _handleSignup,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(
+                                      0xFF0E1F40,
+                                    ), // SAME navy as sign in
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(25),
+                                    ),
+                                    elevation: 0,
+                                    shadowColor: Colors.transparent,
+                                  ),
+                                  child: AnimatedSwitcher(
+                                    duration: 300.ms,
+                                    transitionBuilder: (child, anim) =>
+                                        FadeTransition(
+                                          opacity: anim,
+                                          child: child,
+                                        ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            key: ValueKey("loading"),
+                                            height: 18,
+                                            width: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    Colors.white,
+                                                  ),
+                                            ),
+                                          )
+                                        : const Text(
+                                            key: ValueKey("text"),
+                                            'SIGN UP',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w800,
+                                              letterSpacing: 1.6,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                  ),
+                                ),
                               ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              'Sign Up',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ).animate().fadeIn(delay: 800.ms, duration: 400.ms),
-                        
+                            )
+                            .animate()
+                            .fadeIn(delay: 800.ms, duration: 400.ms)
+                            .slideY(begin: 0.2, end: 0),
+
                         const SizedBox(height: 16),
-                        
+
                         // Already have account
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -276,12 +300,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       ],
                     ),
                   ),
-                  
-                  // Spacer at bottom
-                  const Spacer(flex: 1),
-                    ],
-                  ),
-                ),
+
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
           ),
@@ -295,11 +316,13 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       setState(() => _isLoading = true);
 
       try {
-        await ref.read(authStateProvider.notifier).register(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          name: _nameController.text.trim(),
-        );
+        await ref
+            .read(authStateProvider.notifier)
+            .register(
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              name: _nameController.text.trim(),
+            );
 
         if (mounted) {
           Navigator.of(context).pushReplacement(

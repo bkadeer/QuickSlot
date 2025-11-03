@@ -59,30 +59,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       .fadeIn(duration: 600.ms)
                       .slideY(begin: -0.2, end: 0),
                   
-                  const SizedBox(height: 16),
-                  
-                  // Service indicator
-                  // Container(
-                  //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  //   decoration: BoxDecoration(
-                  //     color: const Color(0xFF00FFF0).withOpacity(0.1),
-                  //     borderRadius: BorderRadius.circular(20),
-                  //     border: Border.all(
-                  //       color: const Color(0xFF00FFF0).withOpacity(0.3),
-                  //       width: 1,
-                  //     ),
-                  //   ),
-                  //   child: Text(
-                  //     'Discover • Book • Enjoy',
-                  //     style: theme.textTheme.bodySmall?.copyWith(
-                  //       color: const Color(0xFF40FFB0),
-                  //       fontWeight: FontWeight.w500,
-                  //       letterSpacing: 1.2,
-                  //     ),
-                  //   ),
-                  // ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-                  
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 90),
+                  const SizedBox(height: 100),
                   
                   // Login Form
                   Form(
@@ -141,40 +119,52 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           },
                         ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
                         
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 13),
                         
                         // Sign In Button
-                        SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleLogin,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF00C4FF),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    ),
-                                  )
-                                : const Text(
-                                    'Sign In',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
+                        // Sign In Button
+SizedBox(
+  height: 50,
+  width: double.infinity,
+  child: ElevatedButton(
+    onPressed: _isLoading ? null : _handleLogin,
+    style: ElevatedButton.styleFrom(
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      backgroundColor: const Color(0xFF0E1F40), // dark navy theme
+      disabledBackgroundColor: Colors.grey.shade500,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(25),
+      ),
+    ),
+    child: AnimatedSwitcher(
+      duration: 300.ms,
+      transitionBuilder: (child, anim) =>
+          FadeTransition(opacity: anim, child: child),
+      child: _isLoading
+          ? const SizedBox(
+              key: ValueKey("loading"),
+              height: 18,
+              width: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : const Text(
+              key: ValueKey("text"),
+              'SIGN IN',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.6,
+                color: Colors.white,
+              ),
+            ),
+    ),
+  ),
+).animate().fadeIn(delay: 350.ms, duration: 400.ms).slideY(begin: .2, end: 0),
+
                         
                         const SizedBox(height: 16),
                         

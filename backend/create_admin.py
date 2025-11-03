@@ -3,56 +3,57 @@
 Script to create an admin user for QuickSlot
 """
 import sys
-from app.database import SessionLocal
+import asyncio
+from app.database import AsyncSessionLocal
 from app.models.user import User
 from app.auth.utils import get_password_hash
 from datetime import datetime
+from sqlalchemy import select
 
 
-def create_admin_user(email: str, password: str, name: str = "Admin"):
-    db = SessionLocal()
-    
-    try:
-        # Check if user already exists
-        existing_user = db.query(User).filter(User.email == email).first()
-        if existing_user:
-            print(f"❌ User with email {email} already exists!")
-            if existing_user.is_admin:
-                print(f"✓ User is already an admin")
-            else:
-                # Promote to admin
-                existing_user.is_admin = True
-                db.commit()
-                print(f"✓ User promoted to admin")
-            return
-        
-        # Create new admin user
-        admin_user = User(
-            email=email,
-            hashed_password=get_password_hash(password),
-            name=name,
-            is_active=True,
-            is_admin=True,
-            created_at=datetime.utcnow(),
-        )
-        
-        db.add(admin_user)
-        db.commit()
-        db.refresh(admin_user)
-        
-        print(f"✅ Admin user created successfully!")
-        print(f"📧 Email: {admin_user.email}")
-        print(f"👤 Name: {admin_user.name}")
-        print(f"🆔 ID: {admin_user.id}")
-        print(f"\n🔐 Use these credentials to login:")
-        print(f"   Email: {email}")
-        print(f"   Password: {password}")
-        
-    except Exception as e:
-        print(f"❌ Error creating admin user: {e}")
-        db.rollback()
-    finally:
-        db.close()
+async def create_admin_user(email: str, password: str, name: str = "Admin"):
+    async with AsyncSessionLocal() as db:
+        try:
+            # Check if user already exists
+            result = await db.execute(select(User).where(User.email == email))
+            existing_user = result.scalar_one_or_none()
+            
+            if existing_user:
+                print(f"❌ User with email {email} already exists!")
+                if existing_user.is_admin:
+                    print(f"✓ User is already an admin")
+                else:
+                    # Promote to admin
+                    existing_user.is_admin = True
+                    await db.commit()
+                    print(f"✓ User promoted to admin")
+                return
+            
+            # Create new admin user
+            admin_user = User(
+                email=email,
+                hashed_password=get_password_hash(password),
+                name=name,
+                is_active=True,
+                is_admin=True,
+                created_at=datetime.utcnow(),
+            )
+            
+            db.add(admin_user)
+            await db.commit()
+            await db.refresh(admin_user)
+            
+            print(f"✅ Admin user created successfully!")
+            print(f"📧 Email: {admin_user.email}")
+            print(f"👤 Name: {admin_user.name}")
+            print(f"🆔 ID: {admin_user.id}")
+            print(f"\n🔐 Use these credentials to login:")
+            print(f"   Email: {email}")
+            print(f"   Password: {password}")
+            
+        except Exception as e:
+            print(f"❌ Error creating admin user: {e}")
+            await db.rollback()
 
 
 if __name__ == "__main__":
@@ -66,4 +67,4 @@ if __name__ == "__main__":
     name = input("Admin name (default: Admin): ").strip() or "Admin"
     
     print(f"\nCreating admin user...")
-    create_admin_user(email, password, name)
+    asyncio.run(create_admin_user(email, password, name))

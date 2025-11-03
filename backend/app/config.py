@@ -4,7 +4,7 @@ from typing import List
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "sqlite:///./quickslot.db"
+    DATABASE_URL: str = "postgresql+asyncpg://quickslot:quickslot123@localhost:5432/quickslot_db"
     
     # JWT
     SECRET_KEY: str = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
