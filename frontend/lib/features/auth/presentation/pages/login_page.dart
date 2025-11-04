@@ -23,6 +23,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _showBiometricButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final authNotifier = ref.read(authStateProvider.notifier);
+    final isEnabled = await authNotifier.isBiometricEnabled();
+    if (mounted) {
+      setState(() {
+        _showBiometricButton = isEnabled;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -167,6 +184,41 @@ SizedBox(
 
                         
                         const SizedBox(height: 16),
+                        
+                        // Biometric Login Button (if enabled)
+                        if (_showBiometricButton)
+                          Column(
+                            children: [
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: _isLoading ? null : _loginWithBiometrics,
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 50),
+                                  side: const BorderSide(
+                                    color: Color(0xFF00FFF0),
+                                    width: 1.5,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.fingerprint,
+                                  color: Color(0xFF00FFF0),
+                                  size: 24,
+                                ),
+                                label: const Text(
+                                  'Login with Biometrics',
+                                  style: TextStyle(
+                                    color: Color(0xFF00FFF0),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ).animate().fadeIn(delay: 550.ms, duration: 400.ms),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
                         
                         // Forgot Password & Sign Up
                         Row(

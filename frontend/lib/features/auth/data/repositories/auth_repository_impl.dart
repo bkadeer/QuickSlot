@@ -125,7 +125,8 @@ class AuthRepositoryImpl implements AuthRepository {
       // Check if biometric is available
       final isAvailable = await _localDataSource.checkBiometricAvailability();
       if (!isAvailable) {
-        throw AuthenticationException('Biometric authentication not available');
+        // Gracefully fail - biometric not available (e.g., iOS Simulator)
+        throw AuthenticationException('Biometric not available. Please enable Face ID/Touch ID in device settings.');
       }
 
       // Get saved email
@@ -134,10 +135,11 @@ class AuthRepositoryImpl implements AuthRepository {
         throw AuthenticationException('No biometric credentials found');
       }
 
-      // Authenticate with biometrics
+      // Authenticate with biometrics (returns false if fails, doesn't throw)
       final authenticated = await _localDataSource.authenticateWithBiometrics();
       if (!authenticated) {
-        throw AuthenticationException('Biometric authentication failed');
+        // User cancelled or biometric failed - gracefully fallback
+        throw AuthenticationException('Biometric authentication cancelled or failed');
       }
 
       // Check if still logged in (has valid token)

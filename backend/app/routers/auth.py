@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import datetime
+from typing import Optional
 from ..database import get_db
 from ..models.user import User
 from ..schemas.user import (
@@ -18,6 +19,7 @@ from ..auth.utils import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    get_current_user_id,
 )
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
@@ -124,15 +126,63 @@ async def refresh_token(request: RefreshTokenRequest, db: AsyncSession = Depends
 
 @router.get("/me", response_model=UserResponse)
 async def get_current_user(
-    token: str = Depends(lambda: None),  # Will be replaced with proper dependency
+    authorization: Optional[str] = Header(None),
     db: AsyncSession = Depends(get_db)
 ):
-    # This is a placeholder - in production, use proper OAuth2 dependency
-    # For now, get from Authorization header manually
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Use proper authentication middleware"
-    )
+    """
+    Get current authenticated user based on JWT token.
+    Used for biometric re-authentication and token validation.
+    """
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authorization header missing",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Extract token from "Bearer <token>" format
+    try:
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication scheme",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header format",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Decode and validate token
+    user_id = get_current_user_id(token)
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Get user from database
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is inactive"
+        )
+    
+    return UserResponse.model_validate(user)
 
 
 @router.post("/logout")

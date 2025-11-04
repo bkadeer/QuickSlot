@@ -64,10 +64,20 @@ class ApiClient {
   }
 
   Future<Response<dynamic>> _retry(RequestOptions requestOptions) async {
+    // Get the new access token after refresh
+    final newToken = await _storage.getAccessToken();
+    
+    // Update headers with new token
+    final headers = Map<String, dynamic>.from(requestOptions.headers);
+    if (newToken != null) {
+      headers['Authorization'] = 'Bearer $newToken';
+    }
+    
     final options = Options(
       method: requestOptions.method,
-      headers: requestOptions.headers,
+      headers: headers,
     );
+    
     return _dio.request<dynamic>(
       requestOptions.path,
       data: requestOptions.data,
@@ -134,12 +144,17 @@ class ApiClient {
 
 // Riverpod Provider
 final dioProvider = Provider<Dio>((ref) {
+  // Use environment variable if provided, otherwise use local network IP
+  // For real devices, use your Mac's local IP: 10.0.0.240
+  // For simulator, 127.0.0.1 works fine
+  const baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.0.240:8000/api/v1', // Changed from 127.0.0.1 to local IP
+  );
+  
   return Dio(
     BaseOptions(
-      baseUrl: const String.fromEnvironment(
-        'API_BASE_URL',
-        defaultValue: 'http://127.0.0.1:8000/api/v1',
-      ),
+      baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {

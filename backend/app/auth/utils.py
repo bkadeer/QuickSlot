@@ -76,3 +76,11 @@ def decode_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+
+def get_current_user_id(token: str) -> Optional[str]:
+    """Extract user ID from JWT token"""
+    payload = decode_token(token)
+    if payload and payload.get("type") == "access":
+        return payload.get("sub")
+    return None

@@ -36,22 +36,32 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<bool> authenticateWithBiometrics() async {
     try {
+      // Check if biometric is available first
       final isAvailable = await checkBiometricAvailability();
       if (!isAvailable) {
-        throw AuthenticationException('Biometric authentication not available');
+        // Gracefully fail - don't crash, just return false
+        // This handles iOS Simulator without enrolled biometrics
+        return false;
       }
 
+      // Attempt biometric authentication
+      // Use biometricOnly: true to prioritize Face ID/Touch ID
+      // Only fallback to passcode if biometric fails or is cancelled
       final authenticated = await _localAuth.authenticate(
         localizedReason: 'Please authenticate to sign in to QuickSlot',
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          biometricOnly: true, // Use Face ID/Touch ID only, no automatic passcode fallback
+          useErrorDialogs: true, // Show error dialogs if biometric fails
+          sensitiveTransaction: false, // Don't require additional confirmation
         ),
       );
 
       return authenticated;
     } catch (e) {
-      throw AuthenticationException('Biometric authentication failed: ${e.toString()}');
+      // Gracefully handle any biometric errors
+      // Don't throw - just return false and fallback to normal login
+      return false;
     }
   }
 

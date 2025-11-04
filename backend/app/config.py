@@ -17,6 +17,9 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://localhost:8080",
         "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://10.0.0.240:*",  # Local network IP for real device testing
+        "*",  # Allow all origins in development (remove in production)
     ]
     
     # Redis

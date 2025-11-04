@@ -73,7 +73,16 @@ class SecureStorageService {
   }
 
   // Clear all stored data (logout)
+  // Note: This preserves biometric settings and tokens for biometric re-authentication
   Future<void> clearAll() async {
+    // Only clear user session data, NOT biometric settings or tokens
+    await _storage.delete(key: _userIdKey);
+    // Keep: access_token, refresh_token, user_email, biometric_enabled
+    // These are needed for biometric re-authentication on next launch
+  }
+  
+  // Clear everything including biometric settings (when user disables biometric)
+  Future<void> clearAllIncludingBiometric() async {
     await _storage.deleteAll();
   }
 }

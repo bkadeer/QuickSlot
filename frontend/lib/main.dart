@@ -45,31 +45,53 @@ class _QuickSlotAppState extends ConsumerState<QuickSlotApp> {
 
   Future<void> _checkAuthStatus() async {
     try {
-      // Check if biometric is enabled and try auto-login
       final authNotifier = ref.read(authStateProvider.notifier);
+      
+      // Check if biometric is enabled
       final biometricEnabled = await authNotifier.isBiometricEnabled();
       
       if (biometricEnabled) {
-        // Try biometric login
-        await authNotifier.loginWithBiometrics();
-        if (mounted) {
-          setState(() {
-            _isAuthenticated = true;
-            _isCheckingAuth = false;
-          });
+        await Future.delayed(const Duration(milliseconds: 450));
+
+        // Biometric is enabled - trigger biometric prompt
+        try {
+          // This will:
+          // 1. Show biometric prompt
+          // 2. If successful, validate stored token with /auth/me
+          // 3. If token valid, return user and auto-login
+          // 4. If token expired, throw error and fallback to login
+          await authNotifier.loginWithBiometrics();
+          
+          if (mounted) {
+            setState(() {
+              _isAuthenticated = true;
+              _isCheckingAuth = false;
+            });
+          }
+        } catch (e) {
+          // Biometric failed or token expired - show login page
+          if (mounted) {
+            setState(() {
+              _isAuthenticated = false;
+              _isCheckingAuth = false;
+            });
+          }
         }
       } else {
-        // Check if there's a valid session
-        final currentUser = ref.read(currentUserProvider);
+        // Biometric not enabled - AuthNotifier already checked token via /auth/me
+        // Just wait a moment for AuthNotifier to finish, then read the state
+        await Future.delayed(const Duration(milliseconds: 100));
+        final authState = ref.read(authStateProvider);
+        
         if (mounted) {
           setState(() {
-            _isAuthenticated = currentUser != null;
+            _isAuthenticated = authState.isAuthenticated;
             _isCheckingAuth = false;
           });
         }
       }
     } catch (e) {
-      // If auto-login fails, show login page
+      // Any error - show login page
       if (mounted) {
         setState(() {
           _isAuthenticated = false;

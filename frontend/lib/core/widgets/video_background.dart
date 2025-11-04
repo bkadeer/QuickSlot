@@ -20,6 +20,7 @@ class VideoBackground extends StatefulWidget {
 class _VideoBackgroundState extends State<VideoBackground> {
   late VideoPlayerController _controller;
   bool _isInitialized = false;
+  bool _isPlayingForward = true;
 
   @override
   void initState() {
@@ -32,7 +33,12 @@ class _VideoBackgroundState extends State<VideoBackground> {
     
     try {
       await _controller.initialize();
-      await _controller.setLooping(true);
+      await _controller.setLooping(false); // Disable auto-loop, we'll handle it manually
+      await _controller.setVolume(0.0); // Mute video
+      
+      // Listen for video completion to create bounce effect
+      _controller.addListener(_onVideoPositionChanged);
+      
       await _controller.play();
       
       if (mounted) {
@@ -44,9 +50,57 @@ class _VideoBackgroundState extends State<VideoBackground> {
       debugPrint('Error initializing video: $e');
     }
   }
+  
+  void _onVideoPositionChanged() {
+    if (!_controller.value.isInitialized || !mounted) return;
+    
+    final position = _controller.value.position;
+    final duration = _controller.value.duration;
+    
+    // Check if video reached the end (forward playback)
+    if (_isPlayingForward && position >= duration - const Duration(milliseconds: 100)) {
+      _isPlayingForward = false;
+      _playBackward();
+    }
+    // Check if video reached the beginning (backward playback)
+    else if (!_isPlayingForward && position <= const Duration(milliseconds: 100)) {
+      _isPlayingForward = true;
+      _playForward();
+    }
+  }
+  
+  void _playForward() {
+    if (!mounted) return;
+    _controller.play();
+  }
+  
+  void _playBackward() {
+    if (!mounted) return;
+    // Simulate backward playback by seeking backward frame by frame
+    _seekBackward();
+  }
+  
+  void _seekBackward() async {
+    if (!mounted || _isPlayingForward) return;
+    
+    final currentPosition = _controller.value.position;
+    final newPosition = currentPosition - const Duration(milliseconds: 33); // ~30fps
+    
+    if (newPosition > Duration.zero) {
+      await _controller.seekTo(newPosition);
+      // Continue seeking backward
+      Future.delayed(const Duration(milliseconds: 33), _seekBackward);
+    } else {
+      // Reached beginning, switch to forward
+      await _controller.seekTo(Duration.zero);
+      _isPlayingForward = true;
+      _playForward();
+    }
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_onVideoPositionChanged);
     _controller.dispose();
     super.dispose();
   }
